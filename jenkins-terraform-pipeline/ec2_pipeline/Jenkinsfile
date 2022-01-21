@@ -18,6 +18,7 @@ pipeline {
             steps {
                 dir('jenkins-terraform-pipeline/ec2_pipeline/'){
                     sh 'terraform -chdir="./jenkins-terraform-pipeline/ec2_pipeline" init -migrate-state'
+                    fileExists 'https://github.com/Deepu206/terraform-pipelines/tree/main/jenkins-terraform-pipeline/ec2_pipeline'
                     sh "echo \$PWD"
                     sh "whoami"
                      
