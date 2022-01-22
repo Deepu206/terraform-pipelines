@@ -19,7 +19,7 @@ pipeline {
             }
             stage('TerraformInit'){
                      steps {
-                        dir('ec2_pipeline'){
+                        dir("ec2_pipeline"){
                           script{ 
                              withAWS(roleAccount:'171934273463', role:'terraform-jenkin-role', useNode: true) {
                              sh 'terraform init -no-color'
@@ -31,7 +31,7 @@ pipeline {
 
         stage('TerraformFormat'){
             steps {
-                dir('ec2_pipeline'){
+                dir("ec2_pipeline"){
                     sh "terraform fmt -list=true -write=false -diff=true -check=true"
                 }
             }
@@ -39,7 +39,7 @@ pipeline {
 
         stage('TerraformValidate'){
             steps {
-                dir('ec2_pipeline'){
+                dir("ec2_pipeline"){
                     sh "terraform validate"
                 }
             }
@@ -47,7 +47,7 @@ pipeline {
 
         stage('TerraformPlan'){
             steps {
-                dir('ec2_pipeline'){
+                dir("ec2_pipeline"){
                     script{ 
                              withAWS(roleAccount:'171934273463', role:'terraform-jenkin-role', useNode: true) {
                              sh 'terraform plan -no-color -out=plan.out'
@@ -59,7 +59,7 @@ pipeline {
         
         stage('TerraformApply'){
             steps {
-                dir('ec2_pipeline'){
+                dir("ec2_pipeline"){
                    script{ 
                              withAWS(roleAccount:'171934273463', role:'terraform-jenkin-role', useNode: true) {
                              sh 'terraform apply -no-color -auto-approve plan.out'
