@@ -14,17 +14,20 @@ pipeline {
         SECRET_KEY = credentials('AWS_SECRET_ACCESS_KEY')
     }
     stages {
+            stage('Git checkout'){
+                git branch: 'main', credentialsId: '87be191b-d1f1-43d8-b679-653249159a46', url: 'https://github.com/Deepu206/terraform-pipelines.git'
+            }
             stage('TerraformInit'){
-            steps {
-                dir('jenkins-terraform-pipeline/ec2_pipeline/'){
-                    sh 'terraform -chdir="./jenkins-terraform-pipeline/ec2_pipeline" init -migrate-state'
-                    fileExists 'https://github.com/Deepu206/terraform-pipelines/tree/main/jenkins-terraform-pipeline/ec2_pipeline'
-                    sh "echo \$PWD"
-                    sh "whoami"
-                     
+                     steps {
+                        dir('jenkins-terraform-pipeline/ec2_pipeline/'){
+                          script{ 
+                             withAWS(roleAccount:'171934273463', role:'terraform-jenkin-role', useNode: true) {
+                             sh 'terraform init -no-color'
+                          }
+                  }   
                 }
             }
-        }
+           }
 
         stage('TerraformFormat'){
             steps {
@@ -45,36 +48,29 @@ pipeline {
         stage('TerraformPlan'){
             steps {
                 dir('jenkins-terraform-pipeline/ec2_pipeline/'){
-                    script {
-                        sh 'terraform -chdir="./jenkins-terraform-pipeline/ec2_pipeline" plan '
-                    }
+                    script{ 
+                             withAWS(roleAccount:'171934273463', role:'terraform-jenkin-role', useNode: true) {
+                             sh 'terraform plan -no-color -out=plan.out'
+                          }
+                    
                 }
             }
         }
         
         stage('TerraformApply'){
             steps {
-               sh 'terraform -chdir="./jenkins-terraform-pipeline/ec2_pipeline" apply --auto-approve'    
+                dir('jenkins-terraform-pipeline/ec2_pipeline/'){
+                   script{ 
+                             withAWS(roleAccount:'171934273463', role:'terraform-jenkin-role', useNode: true) {
+                             sh 'terraform apply -no-color -auto-approve plan.out'
+                             sh "terraform output"   
+
+                          } 
+                }
             }
-            }
-        }
-    }
-}
-post {
-    always {
-        echo 'This will always run'
-    }
-    success {
-        echo 'This will run only if successful'
-    }
-    failure {
-        echo 'This will run only if failed'
-    }
-    unstable {
-        echo 'This will run only if the run was marked as unstable'
-    }
-    changed {
-        echo 'This will run only if the state of the Pipeline has changed'
-        echo 'For example, if the Pipeline was previously failing but is now successful'
-    }
-      }
+         }
+        
+       }      
+  }
+
+ 
